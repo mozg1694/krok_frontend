@@ -3,7 +3,6 @@
 var gulp = require('gulp'), //основной плагин gulp
     stylus = require('gulp-stylus'), //препроцессор stylus
     prefixer = require('gulp-autoprefixer'), //расставление автопрефиксов
-    sass = require('gulp-sass'), // sass компилятор
     cssmin = require('gulp-minify-css'), //минификация css
     uglify = require('gulp-uglify'), //минификация js
     jshint = require('gulp-jshint'), //отслеживание ошибкок в js
@@ -33,8 +32,7 @@ var path = {
         html: 'src/template/*.html', //Синтаксис src/template/*.html говорит gulp что мы хотим взять все файлы с расширением .html
         js: 'src/js/[^_]*.js',//В стилях и скриптах нам понадобятся только main файлы
         jshint: 'src/js/*.js',
-        sass: 'src/sass/*.scss'
-        css: 'src/css/styles.styl',
+        css: 'src/css/main.styl',
         cssVendor: 'src/css/vendor/*.*', //Если мы хотим файлы библиотек отдельно хранить то раскоментить строчку
         img: 'src/css/images/**/*.*', //Синтаксис img/**/*.* означает - взять все файлы всех расширений из папки и из вложенных каталогов
         fonts: 'src/fonts/**/*.*',
@@ -54,6 +52,7 @@ var path = {
     },
     clean: './build', //директории которые могут очищаться
     outputDir: './build' //исходная корневая директория для запуска минисервера
+};
 
 // Локальный сервер для разработки
 gulp.task('connect', function(){
@@ -65,10 +64,18 @@ gulp.task('connect', function(){
 });
 
 // Сборка HTML 
-gulp.task('html:build', function(){
-	return gulp.src(path.src.jshint) //выберем файлы по нужному пути
-		.pipe(jshint()) // прогоним через jshint
-		.pipe(jshint.reporter('jshint-stylish')); // стилизуем вывод ошибок в консоль
+gulp.task('html:build', function () {
+    gulp.src(path.src.html) //Выберем файлы по нужному пути
+        .pipe(rigger()) //Прогоним через rigger
+        .pipe(gulp.dest(path.build.html)) //выгрузим их в папку build
+        .pipe(connect.reload()) //И перезагрузим наш сервер для обновлений
+});
+
+// проверка js на ошибки и вывод их в консоль
+gulp.task('jshint:build', function() {
+    return gulp.src(path.src.jshint) //выберем файлы по нужному пути
+        .pipe(jshint()) //прогоним через jshint
+        .pipe(jshint.reporter('jshint-stylish')); //стилизуем вывод ошибок в консоль
 });
 
 // Сборка JS
@@ -79,7 +86,7 @@ gulp.task('js:build', function() {
 		.pipe(uglify()) // минимизация js
 		.pipe(sourcemaps.write()) // пропишем карты
 		.pipe(rename({suffix: '.min'})) // добавим суффикс .min к выходному файлу
-		.pipe(gulo.dest(path.build.js)) // выгрузим это говно в build
+		.pipe(gulp.dest(path.build.js)) // выгрузим это говно в build
 		.pipe(connect.reload()) // И перезагрузим сервер
 });
 
@@ -131,12 +138,6 @@ gulp.task('imagescontent:build', function() {
         .pipe(connect.reload()) //перезагрузим сервер
 });
 
-// Херачим Sass
-gulp.task('sass:build', function() {
-	gulp.src(path.src.sass)
-		.pipe(sass().on('error', sass.logError))
-		.pipe(gulp.dest(path.src.css))
-});
 
 // Херачим CSS
 gulp.task('cssOwn:build', function () {
@@ -146,10 +147,10 @@ gulp.task('cssOwn:build', function () {
             compress: true,
             'include css': true
         })) //Скомпилируем stylus
-        .pipe(prefixer({
-            browser: ['last 3 version', "> 1%", "ie 8", "ie 7"]
-        })) //Добавим вендорные префиксы
-        .pipe(cssmin()) //Сожмем
+        //.pipe(prefixer({
+        //    browser: ['last 3 version', "> 1%", "ie 8", "ie 7"]
+        //})) //Добавим вендорные префиксы
+        //.pipe(cssmin()) //Сожмем
         .pipe(sourcemaps.write()) //пропишем sourcemap
         .pipe(rename({suffix: '.min'})) //добавим суффикс .min к имени выходного файла
         .pipe(gulp.dest(path.build.css)) //вызгрузим в build
@@ -190,7 +191,6 @@ gulp.task('build', [
     'jshint:build',
     'js:build',
     'sprites:build',
-    'sass:build',
     'css:build',
     'fonts:build',
     'htaccess:build',
@@ -216,10 +216,6 @@ gulp.task('watch', function(){
      //билдим контекстные изрображения в случае изменения
     watch([path.watch.contentImg], function(event, cb) {
         gulp.start('imagescontent:build');
-    });
-     //билдим sass в случае изменения
-    watch([path.watch.sass], function(event, cb) {
-        gulp.start('sass:build');
     });
      //билдим css в случае изменения
     watch([path.watch.css], function(event, cb) {

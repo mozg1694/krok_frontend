@@ -16,3 +16,28 @@ sprite($sprite)
     spritePosition($sprite)
     spriteWidth($sprite)
     spriteHeight($sprite)
+
+button-color($class, $background, $color, $bordercolor)
+	$class
+		background $background
+		color $color
+		border-color $bordercolor
+		:hover, :active
+			background $background_hover
+			color $color_hover
+			border-color $bordercolor_hover
+	
+linear-gradient(start_color, end_color, start = left top, end = left bottom)
+	mozstart = top if start = left top
+	background start_color
+	background -moz-linear-gradient(mozstart, start_color 0%, end_color 45%)
+	background -webkit-gradient(linear, start, end, color-stop(0%, start_color), color-stop(45%, end_color))
+	-webkit-background-origin padding-box
+  
+back-shadow()
+	-webkit-box-shadow 0px 0px 20px 0px rgba(0,0,0,0.75)
+	
+	-moz-box-shadow 0px 0px 20px 0px rgba(0,0,0,0.75)
+	
+	box-shadow 0px 0px 20px 0px rgba(0,0,0,0.75)
+	
